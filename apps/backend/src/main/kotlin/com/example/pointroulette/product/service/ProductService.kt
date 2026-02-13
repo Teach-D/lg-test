@@ -17,14 +17,28 @@ class ProductService(
   private val productRepository: ProductRepository,
 ) {
 
-  /** 상품 목록 페이지 조회 */
+  /** [사용자] 활성 상품 목록 조회 */
+  fun getActiveProducts(page: Int, size: Int): Page<ProductResponse> {
+    val pageable = PageRequest.of(page, size)
+    return productRepository.findByActiveTrueOrderByCreatedAtDesc(pageable)
+      .map(ProductResponse::from)
+  }
+
+  /** [사용자] 활성 상품 단건 조회 */
+  fun getActiveProduct(id: Long): ProductResponse {
+    val product = productRepository.findByIdAndActiveTrue(id)
+      .orElseThrow { ProductNotFoundException(id) }
+    return ProductResponse.from(product)
+  }
+
+  /** [관리자] 전체 상품 목록 조회 */
   fun getProducts(page: Int, size: Int): Page<ProductResponse> {
     val pageable = PageRequest.of(page, size)
     return productRepository.findAllByOrderByCreatedAtDesc(pageable)
       .map(ProductResponse::from)
   }
 
-  /** 상품 단건 조회 */
+  /** [관리자] 상품 단건 조회 */
   fun getProduct(id: Long): ProductResponse {
     val product = findById(id)
     return ProductResponse.from(product)

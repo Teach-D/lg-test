@@ -5,6 +5,7 @@ import com.example.pointroulette.user.entity.User
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
+import java.time.LocalDateTime
 
 data class RegisterRequest(
   @field:NotBlank(message = "이메일은 필수입니다")
@@ -49,6 +50,32 @@ data class UserResponse(
       nickname = user.nickname,
       point = user.point,
       role = user.role,
+    )
+  }
+}
+
+data class MockLoginRequest(
+  @field:NotBlank(message = "닉네임은 필수입니다")
+  @field:Size(min = 2, max = 50, message = "닉네임은 2자 이상 50자 이하여야 합니다")
+  val nickname: String,
+)
+
+data class AdminUserResponse(
+  val id: Long,
+  val email: String,
+  val nickname: String,
+  val point: Int,
+  val role: Role,
+  val createdAt: LocalDateTime,
+) {
+  companion object {
+    fun from(user: User) = AdminUserResponse(
+      id = user.id,
+      email = user.email,
+      nickname = user.nickname,
+      point = user.point,
+      role = user.role,
+      createdAt = user.createdAt,
     )
   }
 }

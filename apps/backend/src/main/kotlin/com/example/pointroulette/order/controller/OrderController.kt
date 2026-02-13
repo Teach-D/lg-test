@@ -5,6 +5,8 @@ import com.example.pointroulette.order.dto.CreateExchangeOrderRequest
 import com.example.pointroulette.order.dto.OrderResponse
 import com.example.pointroulette.order.entity.OrderStatus
 import com.example.pointroulette.order.service.OrderService
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.http.HttpStatus
@@ -17,14 +19,14 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
-/** 주문 API */
+@Tag(name = "Order", description = "주문 API")
 @RestController
 @RequestMapping("/api/orders")
 class OrderController(
   private val orderService: OrderService,
 ) {
 
-  /** 상품 교환 주문 생성 */
+  @Operation(summary = "상품 교환 주문", description = "포인트를 차감하여 상품 교환 주문을 생성합니다")
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   fun createExchangeOrder(
@@ -33,7 +35,7 @@ class OrderController(
   ): ApiResponse<OrderResponse> =
     ApiResponse.ok(orderService.createExchangeOrder(userId, request.productId))
 
-  /** 내 주문 목록 조회 */
+  @Operation(summary = "내 주문 목록 조회", description = "로그인한 사용자의 주문 내역을 조회합니다")
   @GetMapping("/me")
   fun getMyOrders(
     @AuthenticationPrincipal userId: Long,

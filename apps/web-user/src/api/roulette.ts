@@ -14,16 +14,22 @@ export interface RouletteConfig {
 }
 
 export interface SpinResult {
-  segmentId: number;
-  segmentLabel: string;
   rewardPoint: number;
-  segmentIndex: number;
   remainingPoint: number;
+}
+
+export interface RouletteStatus {
+  hasSpunToday: boolean;
+  dailyBudgetRemaining: number;
+  spinCost: number;
 }
 
 export const rouletteApi = {
   getConfig: () =>
     apiClient.get<ApiResponse<RouletteConfig>>('/roulette/config'),
+
+  getStatus: () =>
+    apiClient.get<ApiResponse<RouletteStatus>>('/roulette/status'),
 
   spin: () =>
     apiClient.post<ApiResponse<SpinResult>>('/roulette/spin'),

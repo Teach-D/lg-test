@@ -24,19 +24,19 @@ export type UpdateProductParams = CreateProductParams;
 
 export const productApi = {
   getList: (page: number, size: number) =>
-    apiClient.get<ApiResponse<PageResponse<Product>>>('/products', {
+    apiClient.get<ApiResponse<PageResponse<Product>>>('/admin/products', {
       params: { page, size },
     }),
 
   getById: (id: number) =>
-    apiClient.get<ApiResponse<Product>>(`/products/${id}`),
+    apiClient.get<ApiResponse<Product>>(`/admin/products/${id}`),
 
   create: (data: CreateProductParams) =>
-    apiClient.post<ApiResponse<Product>>('/products', data),
+    apiClient.post<ApiResponse<Product>>('/admin/products', data),
 
   update: (id: number, data: UpdateProductParams) =>
-    apiClient.put<ApiResponse<Product>>(`/products/${id}`, data),
+    apiClient.put<ApiResponse<Product>>(`/admin/products/${id}`, data),
 
   delete: (id: number) =>
-    apiClient.delete(`/products/${id}`),
+    apiClient.delete(`/admin/products/${id}`),
 };

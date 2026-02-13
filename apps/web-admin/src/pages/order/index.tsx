@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Table, Tag, Select, Space, message } from 'antd';
+import { Table, Tag, Select, Space, message, Button, Popconfirm } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { orderApi } from '../../api/order';
 import type { OrderItem, OrderStatus } from '../../api/order';
@@ -56,7 +56,17 @@ export default function OrderPage() {
       message.success('주문 상태가 변경되었습니다.');
       queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
     },
+    onError: () => {
+      message.error('상태 변경에 실패했습니다.');
+    },
   });
+
+  const handleStatusChange = (id: number, newStatus: OrderStatus) => {
+    statusMutation.mutate({ id, status: newStatus });
+  };
+
+  const canCancel = (status: OrderStatus) =>
+    status === 'PENDING' || status === 'CONFIRMED';
 
   const columns: ColumnsType<OrderItem> = [
     { title: 'ID', dataIndex: 'id', width: 60 },
@@ -78,30 +88,69 @@ export default function OrderPage() {
       title: '상태',
       dataIndex: 'status',
       width: 130,
-      render: (status: OrderStatus, record) => (
-        <Select
-          value={status}
-          size="small"
-          style={{ width: 110 }}
-          onChange={(val: OrderStatus) =>
-            statusMutation.mutate({ id: record.id, status: val })
-          }
-        >
-          {STATUS_OPTIONS.filter((o) => o.value !== '').map((o) => (
-            <Select.Option key={o.value} value={o.value}>
-              <Tag color={STATUS_COLORS[o.value]} style={{ margin: 0 }}>
-                {o.label}
-              </Tag>
-            </Select.Option>
-          ))}
-        </Select>
-      ),
+      render: (status: OrderStatus, record) => {
+        if (status === 'CANCELLED' || status === 'COMPLETED') {
+          return (
+            <Tag color={STATUS_COLORS[status]}>
+              {STATUS_LABELS[status]}
+            </Tag>
+          );
+        }
+        return (
+          <Select
+            value={status}
+            size="small"
+            style={{ width: 110 }}
+            onChange={(val: OrderStatus) => {
+              if (val !== 'CANCELLED') {
+                handleStatusChange(record.id, val);
+              }
+            }}
+          >
+            {STATUS_OPTIONS.filter(
+              (o) => o.value !== '' && o.value !== 'CANCELLED',
+            ).map((o) => (
+              <Select.Option key={o.value} value={o.value}>
+                <Tag color={STATUS_COLORS[o.value]} style={{ margin: 0 }}>
+                  {o.label}
+                </Tag>
+              </Select.Option>
+            ))}
+          </Select>
+        );
+      },
     },
     {
       title: '주문일시',
       dataIndex: 'createdAt',
       width: 170,
       render: (v: string) => new Date(v).toLocaleString('ko-KR'),
+    },
+    {
+      title: '관리',
+      width: 100,
+      render: (_, record) => {
+        if (record.status === 'CANCELLED') {
+          return <span style={{ color: '#999' }}>취소됨</span>;
+        }
+        if (!canCancel(record.status)) {
+          return null;
+        }
+        return (
+          <Popconfirm
+            title="주문 취소"
+            description={`${record.pointCost.toLocaleString()}P가 환불됩니다. 취소하시겠습니까?`}
+            onConfirm={() => handleStatusChange(record.id, 'CANCELLED')}
+            okText="취소 실행"
+            cancelText="닫기"
+            okButtonProps={{ danger: true }}
+          >
+            <Button type="link" danger size="small">
+              취소
+            </Button>
+          </Popconfirm>
+        );
+      },
     },
   ];
 

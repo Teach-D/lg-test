@@ -7,6 +7,11 @@ export interface DashboardSummary {
   totalUsers: number;
   totalProducts: number;
   orderStatusCounts: Record<string, number>;
+  todayBudgetLimit: number;
+  todayBudgetSpent: number;
+  todayBudgetRemaining: number;
+  todaySpinCount: number;
+  todayPointsDistributed: number;
 }
 
 export const dashboardApi = {

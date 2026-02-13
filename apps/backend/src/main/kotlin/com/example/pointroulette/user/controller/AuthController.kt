@@ -3,6 +3,7 @@ package com.example.pointroulette.user.controller
 import com.example.pointroulette.common.dto.ApiResponse
 import com.example.pointroulette.user.dto.LoginRequest
 import com.example.pointroulette.user.dto.LoginResponse
+import com.example.pointroulette.user.dto.MockLoginRequest
 import com.example.pointroulette.user.dto.RegisterRequest
 import com.example.pointroulette.user.service.AuthService
 import io.swagger.v3.oas.annotations.Operation
@@ -40,6 +41,16 @@ class AuthController(
   @PostMapping("/login")
   fun login(@Valid @RequestBody request: LoginRequest): ApiResponse<LoginResponse> {
     val response = authService.login(request)
+    return ApiResponse.ok(response)
+  }
+
+  @Operation(summary = "Mock 로그인", description = "닉네임만으로 로그인합니다. 계정이 없으면 자동 생성됩니다")
+  @ApiResponses(
+    io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그인 성공"),
+  )
+  @PostMapping("/mock-login")
+  fun mockLogin(@Valid @RequestBody request: MockLoginRequest): ApiResponse<LoginResponse> {
+    val response = authService.mockLogin(request)
     return ApiResponse.ok(response)
   }
 }

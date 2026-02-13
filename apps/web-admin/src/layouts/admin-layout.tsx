@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Layout, Menu } from 'antd';
+import { Button, Layout, Menu } from 'antd';
 import {
   DashboardOutlined,
-  ShoppingOutlined,
-  WalletOutlined,
+  LogoutOutlined,
   OrderedListOutlined,
+  ShoppingOutlined,
+  UserOutlined,
+  WalletOutlined,
 } from '@ant-design/icons';
 
 const { Header, Sider, Content } = Layout;
@@ -15,12 +17,18 @@ const menuItems = [
   { key: '/products', icon: <ShoppingOutlined />, label: '상품 관리' },
   { key: '/budgets', icon: <WalletOutlined />, label: '예산 관리' },
   { key: '/orders', icon: <OrderedListOutlined />, label: '주문 내역' },
+  { key: '/users', icon: <UserOutlined />, label: '사용자 관리' },
 ];
 
 export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    navigate('/login');
+  };
 
   const selectedKey = menuItems
     .filter((item) => item.key !== '/')
@@ -64,9 +72,19 @@ export default function AdminLayout() {
             background: '#fff',
             fontSize: 18,
             fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
           }}
         >
-          관리자 페이지
+          <span>관리자 페이지</span>
+          <Button
+            type="text"
+            icon={<LogoutOutlined />}
+            onClick={handleLogout}
+          >
+            로그아웃
+          </Button>
         </Header>
         <Content style={{ margin: 24 }}>
           <Outlet />

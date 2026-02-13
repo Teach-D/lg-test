@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 
 /** 예산 관리 API */
 @RestController
-@RequestMapping("/api/budgets")
+@RequestMapping("/api/admin/budgets")
 class BudgetController(
   private val budgetService: BudgetService,
 ) {

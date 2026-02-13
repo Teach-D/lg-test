@@ -9,6 +9,7 @@ data class PointHistoryResponse(
   val amount: Int,
   val type: PointType,
   val description: String,
+  val expiresAt: LocalDateTime?,
   val createdAt: LocalDateTime,
 ) {
   companion object {
@@ -17,6 +18,7 @@ data class PointHistoryResponse(
       amount = history.amount,
       type = history.type,
       description = history.description,
+      expiresAt = history.expiresAt,
       createdAt = history.createdAt,
     )
   }
@@ -24,12 +26,15 @@ data class PointHistoryResponse(
 
 data class PointSummaryResponse(
   val currentPoint: Int,
+  val expiringPointIn7Days: Int,
   val histories: List<PointHistoryResponse>,
 ) {
   companion object {
-    fun of(currentPoint: Int, histories: List<PointHistory>) = PointSummaryResponse(
-      currentPoint = currentPoint,
-      histories = histories.map { PointHistoryResponse.from(it) },
-    )
+    fun of(currentPoint: Int, expiringPointIn7Days: Int, histories: List<PointHistory>) =
+      PointSummaryResponse(
+        currentPoint = currentPoint,
+        expiringPointIn7Days = expiringPointIn7Days,
+        histories = histories.map { PointHistoryResponse.from(it) },
+      )
   }
 }

@@ -1,10 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import { Card, Col, Row, Statistic } from 'antd';
+import { Card, Col, Row, Statistic, Progress } from 'antd';
 import {
   ShoppingOutlined,
   UserOutlined,
   OrderedListOutlined,
   DollarOutlined,
+  ThunderboltOutlined,
+  GiftOutlined,
 } from '@ant-design/icons';
 import {
   PieChart,
@@ -39,11 +41,81 @@ export default function DashboardPage() {
       }))
     : [];
 
+  const budgetPercent =
+    data && data.todayBudgetLimit > 0
+      ? Math.round((data.todayBudgetSpent / data.todayBudgetLimit) * 100)
+      : 0;
+
   return (
     <div>
       <h2 style={{ marginBottom: 24 }}>대시보드</h2>
 
+      {/* 오늘 예산 현황 */}
+      <Card
+        title="오늘 예산 현황"
+        loading={isLoading}
+        style={{ marginBottom: 24 }}
+      >
+        {data && data.todayBudgetLimit > 0 ? (
+          <>
+            <Row gutter={16}>
+              <Col span={8}>
+                <Statistic
+                  title="예산 한도"
+                  value={data.todayBudgetLimit}
+                  suffix="P"
+                />
+              </Col>
+              <Col span={8}>
+                <Statistic
+                  title="소진액"
+                  value={data.todayBudgetSpent}
+                  suffix="P"
+                />
+              </Col>
+              <Col span={8}>
+                <Statistic
+                  title="잔여"
+                  value={data.todayBudgetRemaining}
+                  suffix="P"
+                  valueStyle={{
+                    color:
+                      data.todayBudgetRemaining > 0 ? '#3f8600' : '#cf1322',
+                  }}
+                />
+              </Col>
+            </Row>
+            <Progress percent={budgetPercent} style={{ marginTop: 16 }} />
+          </>
+        ) : (
+          <div style={{ textAlign: 'center', padding: 20, color: '#999' }}>
+            오늘의 예산이 설정되지 않았습니다.
+          </div>
+        )}
+      </Card>
+
+      {/* 오늘 룰렛 현황 + 기타 통계 */}
       <Row gutter={16} style={{ marginBottom: 24 }}>
+        <Col span={6}>
+          <Card loading={isLoading}>
+            <Statistic
+              title="오늘 참여자"
+              value={data?.todaySpinCount ?? 0}
+              suffix="명"
+              prefix={<ThunderboltOutlined />}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card loading={isLoading}>
+            <Statistic
+              title="오늘 지급 포인트"
+              value={data?.todayPointsDistributed ?? 0}
+              suffix="P"
+              prefix={<GiftOutlined />}
+            />
+          </Card>
+        </Col>
         <Col span={6}>
           <Card loading={isLoading}>
             <Statistic
@@ -64,7 +136,10 @@ export default function DashboardPage() {
             />
           </Card>
         </Col>
-        <Col span={6}>
+      </Row>
+
+      <Row gutter={16} style={{ marginBottom: 24 }}>
+        <Col span={12}>
           <Card loading={isLoading}>
             <Statistic
               title="전체 사용자"
@@ -74,7 +149,7 @@ export default function DashboardPage() {
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col span={12}>
           <Card loading={isLoading}>
             <Statistic
               title="등록 상품"

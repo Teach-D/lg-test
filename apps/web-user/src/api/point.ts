@@ -6,11 +6,13 @@ export interface PointHistory {
   amount: number;
   type: string;
   description: string;
+  expiresAt: string | null;
   createdAt: string;
 }
 
 export interface PointSummary {
   currentPoint: number;
+  expiringPointIn7Days: number;
   histories: PointHistory[];
 }
 

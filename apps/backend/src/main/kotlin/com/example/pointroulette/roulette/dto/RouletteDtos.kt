@@ -24,9 +24,34 @@ data class RouletteConfigResponse(
 )
 
 data class SpinResultResponse(
-  val segmentId: Long,
-  val segmentLabel: String,
   val rewardPoint: Int,
-  val segmentIndex: Int,
   val remainingPoint: Int,
 )
+
+data class RouletteStatusResponse(
+  val hasSpunToday: Boolean,
+  val dailyBudgetRemaining: Long,
+  val spinCost: Int,
+)
+
+data class AdminSpinResponse(
+  val id: Long,
+  val userId: Long,
+  val segmentLabel: String,
+  val rewardPoint: Int,
+  val costPoint: Int,
+  val cancelled: Boolean,
+  val createdAt: java.time.LocalDateTime,
+) {
+  companion object {
+    fun from(spin: com.example.pointroulette.roulette.entity.SpinHistory) = AdminSpinResponse(
+      id = spin.id,
+      userId = spin.userId,
+      segmentLabel = spin.segmentLabel,
+      rewardPoint = spin.rewardPoint,
+      costPoint = spin.costPoint,
+      cancelled = spin.cancelled,
+      createdAt = spin.createdAt,
+    )
+  }
+}

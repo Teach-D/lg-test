@@ -25,8 +25,8 @@ export interface SetBudgetParams {
 
 export const budgetApi = {
   getSummary: () =>
-    apiClient.get<ApiResponse<BudgetSummary>>('/budgets/summary'),
+    apiClient.get<ApiResponse<BudgetSummary>>('/admin/budgets/summary'),
 
   set: (data: SetBudgetParams) =>
-    apiClient.put<ApiResponse<Budget>>('/budgets', data),
+    apiClient.put<ApiResponse<Budget>>('/admin/budgets', data),
 };

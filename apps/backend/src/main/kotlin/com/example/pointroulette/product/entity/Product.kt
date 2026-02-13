@@ -31,4 +31,13 @@ class Product(
     this.stock = stock
     this.active = active
   }
+
+  fun decreaseStock() {
+    require(stock > 0) { "재고가 부족합니다." }
+    stock--
+  }
+
+  fun increaseStock() {
+    stock++
+  }
 }

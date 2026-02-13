@@ -13,23 +13,13 @@ export interface LoginResponse {
   user: UserInfo;
 }
 
-export interface RegisterParams {
-  email: string;
-  password: string;
+export interface MockLoginParams {
   nickname: string;
 }
 
-export interface LoginParams {
-  email: string;
-  password: string;
-}
-
 export const authApi = {
-  register: (data: RegisterParams) =>
-    apiClient.post<ApiResponse<LoginResponse>>('/auth/register', data),
-
-  login: (data: LoginParams) =>
-    apiClient.post<ApiResponse<LoginResponse>>('/auth/login', data),
+  mockLogin: (data: MockLoginParams) =>
+    apiClient.post<ApiResponse<LoginResponse>>('/auth/mock-login', data),
 
   getMe: () =>
     apiClient.get<ApiResponse<UserInfo>>('/users/me'),

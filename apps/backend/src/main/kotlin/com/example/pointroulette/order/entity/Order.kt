@@ -1,6 +1,7 @@
 package com.example.pointroulette.order.entity
 
 import com.example.pointroulette.common.entity.BaseEntity
+import com.example.pointroulette.order.exception.InvalidStatusTransitionException
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -31,8 +32,22 @@ class Order(
   val orderType: OrderType = OrderType.EXCHANGE,
 ) : BaseEntity() {
 
-  fun updateStatus(status: OrderStatus) {
-    this.status = status
+  fun updateStatus(newStatus: OrderStatus) {
+    validateTransition(newStatus)
+    this.status = newStatus
+  }
+
+  private fun validateTransition(newStatus: OrderStatus) {
+    val allowed = when (status) {
+      OrderStatus.PENDING -> setOf(OrderStatus.CONFIRMED, OrderStatus.CANCELLED)
+      OrderStatus.CONFIRMED -> setOf(OrderStatus.SHIPPED, OrderStatus.CANCELLED)
+      OrderStatus.SHIPPED -> setOf(OrderStatus.COMPLETED)
+      OrderStatus.COMPLETED -> emptySet()
+      OrderStatus.CANCELLED -> emptySet()
+    }
+    if (newStatus !in allowed) {
+      throw InvalidStatusTransitionException(status.name, newStatus.name)
+    }
   }
 }
 

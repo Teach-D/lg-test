@@ -22,6 +22,10 @@
 - type: feat, fix, docs, refactor, chore, test, style
 - 예: `feat: 룰렛 확률 계산 로직 추가`
 
+### 자동 커밋
+- 작업 완료 후 항상 관련 파일을 `git add` + `git commit`한다
+- 커밋 메시지는 변경 내용을 분석하여 Conventional Commits 형식으로 작성한다
+
 ### 머지 전략
 - Squash Merge (feature → dev, dev → main)
 

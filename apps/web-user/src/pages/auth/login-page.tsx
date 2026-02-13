@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { authApi } from '@/api/auth';
@@ -8,11 +8,10 @@ import { useAuthStore } from '@/stores/auth-store';
 export default function LoginPage() {
   const navigate = useNavigate();
   const setAuth = useAuthStore((s) => s.setAuth);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [nickname, setNickname] = useState('');
 
   const mutation = useMutation({
-    mutationFn: () => authApi.login({ email, password }),
+    mutationFn: () => authApi.mockLogin({ nickname }),
     onSuccess: (res) => {
       const { accessToken, user } = res.data.data;
       setAuth(user, accessToken);
@@ -20,7 +19,7 @@ export default function LoginPage() {
       navigate('/');
     },
     onError: () => {
-      toast.error('이메일 또는 비밀번호가 올바르지 않습니다.');
+      toast.error('로그인에 실패했습니다.');
     },
   });
 
@@ -39,30 +38,17 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              이메일
+              닉네임
             </label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
               required
+              minLength={2}
+              maxLength={50}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="email@example.com"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              비밀번호
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="8자 이상"
+              placeholder="닉네임을 입력하세요"
             />
           </div>
 
@@ -71,15 +57,12 @@ export default function LoginPage() {
             disabled={mutation.isPending}
             className="w-full py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
           >
-            {mutation.isPending ? '로그인 중...' : '로그인'}
+            {mutation.isPending ? '로그인 중...' : '시작하기'}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-500">
-          계정이 없으신가요?{' '}
-          <Link to="/register" className="text-indigo-600 font-medium hover:underline">
-            회원가입
-          </Link>
+        <p className="mt-6 text-center text-sm text-gray-400">
+          닉네임만 입력하면 자동으로 계정이 생성됩니다
         </p>
       </div>
     </div>

@@ -1,20 +1,28 @@
 package com.example.pointroulette.roulette.service
 
+import com.example.pointroulette.budget.service.BudgetService
 import com.example.pointroulette.common.exception.BusinessException
 import com.example.pointroulette.point.entity.PointType
 import com.example.pointroulette.point.service.PointService
+import com.example.pointroulette.roulette.dto.AdminSpinResponse
 import com.example.pointroulette.roulette.dto.RouletteConfigResponse
+import com.example.pointroulette.roulette.dto.RouletteStatusResponse
 import com.example.pointroulette.roulette.dto.SegmentResponse
 import com.example.pointroulette.roulette.dto.SpinResultResponse
 import com.example.pointroulette.roulette.entity.SpinHistory
+import com.example.pointroulette.roulette.exception.DailyLimitExceededException
+import com.example.pointroulette.roulette.exception.SpinAlreadyCancelledException
+import com.example.pointroulette.roulette.exception.SpinNotFoundException
 import com.example.pointroulette.roulette.repository.RouletteSegmentRepository
 import com.example.pointroulette.roulette.repository.SpinHistoryRepository
 import com.example.pointroulette.user.repository.UserRepository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
+import java.time.LocalTime
 import kotlin.random.Random
-
-private const val SPIN_COST = 100
 
 @Service
 @Transactional(readOnly = true)
@@ -23,6 +31,7 @@ class RouletteService(
   private val spinHistoryRepository: SpinHistoryRepository,
   private val pointService: PointService,
   private val userRepository: UserRepository,
+  private val budgetService: BudgetService,
 ) {
 
   /** 룰렛 설정 조회 (세그먼트 목록 + 스핀 비용) */
@@ -31,61 +40,63 @@ class RouletteService(
       .map(SegmentResponse::from)
 
     return RouletteConfigResponse(
-      spinCost = SPIN_COST,
+      spinCost = 0,
       segments = segments,
     )
   }
 
-  /** 룰렛 스핀: 비용 차감 → 가중치 랜덤 당첨 → 보상 지급 */
-  @Transactional
-  fun spin(userId: Long): SpinResultResponse {
-    val segments = segmentRepository.findAllByOrderByDisplayOrderAsc()
-
-    if (segments.isEmpty()) {
-      throw BusinessException("ROULETTE_NO_CONFIG", "룰렛이 설정되지 않았습니다.")
-    }
-
-    // 스핀 비용 차감
-    pointService.addPointHistory(
-      userId = userId,
-      amount = -SPIN_COST,
-      type = PointType.ROULETTE_WIN,
-      description = "룰렛 스핀 비용",
+  /** 오늘 스핀 여부 + 잔여 예산 조회 */
+  fun getStatus(userId: Long): RouletteStatusResponse {
+    val today = LocalDate.now()
+    val hasSpun = spinHistoryRepository.existsByUserIdAndCancelledFalseAndCreatedAtBetween(
+      userId,
+      today.atStartOfDay(),
+      today.atTime(LocalTime.MAX),
     )
 
-    // 가중치 기반 랜덤 선택
-    val totalWeight = segments.sumOf { it.weight }
-    var roll = Random.nextInt(totalWeight)
-    var winnerIndex = 0
+    return RouletteStatusResponse(
+      hasSpunToday = hasSpun,
+      dailyBudgetRemaining = budgetService.getDailyRemaining(),
+      spinCost = 0,
+    )
+  }
 
-    for ((index, seg) in segments.withIndex()) {
-      roll -= seg.weight
-      if (roll < 0) {
-        winnerIndex = index
-        break
-      }
+  /** 룰렛 스핀: 1일 1회 체크 → 100~1000p 랜덤 보상 → 예산 소비 → 포인트 지급 */
+  @Transactional
+  fun spin(userId: Long): SpinResultResponse {
+    // 1일 1회 체크
+    val today = LocalDate.now()
+    val alreadySpun = spinHistoryRepository.existsByUserIdAndCancelledFalseAndCreatedAtBetween(
+      userId,
+      today.atStartOfDay(),
+      today.atTime(LocalTime.MAX),
+    )
+    if (alreadySpun) {
+      throw DailyLimitExceededException()
     }
 
-    val winner = segments[winnerIndex]
+    // 100~1000p 랜덤 보상
+    val rewardPoint = Random.nextInt(100, 1001)
 
-    // 당첨 포인트 지급 (0이 아닌 경우)
-    if (winner.rewardPoint > 0) {
-      pointService.addPointHistory(
-        userId = userId,
-        amount = winner.rewardPoint,
-        type = PointType.ROULETTE_WIN,
-        description = "룰렛 당첨: ${winner.label}",
-      )
-    }
+    // 예산 체크 + 소비
+    budgetService.checkAndSpendDailyBudget(rewardPoint)
+
+    // 포인트 지급
+    pointService.addPointHistory(
+      userId = userId,
+      amount = rewardPoint,
+      type = PointType.ROULETTE_WIN,
+      description = "룰렛 당첨: ${rewardPoint}p",
+    )
 
     // 스핀 이력 저장
     spinHistoryRepository.save(
       SpinHistory(
         userId = userId,
-        segmentId = winner.id,
-        segmentLabel = winner.label,
-        rewardPoint = winner.rewardPoint,
-        costPoint = SPIN_COST,
+        segmentId = 0,
+        segmentLabel = "랜덤 보상",
+        rewardPoint = rewardPoint,
+        costPoint = 0,
       ),
     )
 
@@ -93,11 +104,51 @@ class RouletteService(
       .orElseThrow { BusinessException("USER_001", "사용자를 찾을 수 없습니다") }
 
     return SpinResultResponse(
-      segmentId = winner.id,
-      segmentLabel = winner.label,
-      rewardPoint = winner.rewardPoint,
-      segmentIndex = winnerIndex,
+      rewardPoint = rewardPoint,
       remainingPoint = user.point,
     )
+  }
+
+  /** [관리자] 스핀 이력 목록 조회 */
+  fun getSpinHistory(page: Int, size: Int): Page<AdminSpinResponse> {
+    val pageable = PageRequest.of(page, size)
+    return spinHistoryRepository.findAllByOrderByCreatedAtDesc(pageable)
+      .map(AdminSpinResponse::from)
+  }
+
+  /** [관리자] 스핀 취소 — 포인트 회수 + 예산 복원 */
+  @Transactional
+  fun cancelSpin(spinId: Long) {
+    val spin = spinHistoryRepository.findById(spinId)
+      .orElseThrow { SpinNotFoundException(spinId) }
+
+    if (spin.cancelled) {
+      throw SpinAlreadyCancelledException(spinId)
+    }
+
+    spin.cancel()
+
+    // 당첨 포인트 회수
+    if (spin.rewardPoint > 0) {
+      pointService.addPointHistory(
+        userId = spin.userId,
+        amount = -spin.rewardPoint,
+        type = PointType.ADMIN_ADJUST,
+        description = "룰렛 참여 취소 (관리자): 포인트 회수",
+      )
+
+      // 예산 복원
+      budgetService.restoreDailyBudget(spin.rewardPoint, spin.createdAt.toLocalDate())
+    }
+
+    // 스핀 비용 환불 (비용이 있는 경우만)
+    if (spin.costPoint > 0) {
+      pointService.addPointHistory(
+        userId = spin.userId,
+        amount = spin.costPoint,
+        type = PointType.ADMIN_ADJUST,
+        description = "룰렛 참여 취소 (관리자): 비용 환불",
+      )
+    }
   }
 }

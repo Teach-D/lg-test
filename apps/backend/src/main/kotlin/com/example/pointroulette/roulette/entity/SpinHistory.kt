@@ -22,4 +22,12 @@ class SpinHistory(
 
   @Column(nullable = false)
   val costPoint: Int,
-) : BaseEntity()
+
+  @Column(nullable = false)
+  var cancelled: Boolean = false,
+) : BaseEntity() {
+
+  fun cancel() {
+    this.cancelled = true
+  }
+}

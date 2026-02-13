@@ -43,7 +43,7 @@ class OrderService(
     )
 
     // 재고 차감
-    product.stock -= 1
+    product.decreaseStock()
 
     val order = orderRepository.save(
       Order(
@@ -84,12 +84,29 @@ class OrderService(
     return orders.map(OrderResponse::from)
   }
 
-  /** [관리자] 주문 상태 변경 */
+  /** [관리자] 주문 상태 변경. CANCELLED 시 포인트 환불 + 재고 복원 */
   @Transactional
-  fun updateOrderStatus(orderId: Long, status: OrderStatus): OrderResponse {
+  fun updateOrderStatus(orderId: Long, newStatus: OrderStatus): OrderResponse {
     val order = orderRepository.findById(orderId)
       .orElseThrow { BusinessException("ORDER_NOT_FOUND", "주문을 찾을 수 없습니다. (id=$orderId)") }
-    order.updateStatus(status)
+
+    val wasCancelling = newStatus == OrderStatus.CANCELLED
+
+    order.updateStatus(newStatus)
+
+    // 취소 시 포인트 환불 + 재고 복원
+    if (wasCancelling) {
+      pointService.addPointHistory(
+        userId = order.userId,
+        amount = order.pointCost,
+        type = PointType.PRODUCT_REFUND,
+        description = "'${order.productName}' 주문 취소 환불",
+      )
+
+      val product = productRepository.findById(order.productId).orElse(null)
+      product?.increaseStock()
+    }
+
     return OrderResponse.from(order)
   }
 }
