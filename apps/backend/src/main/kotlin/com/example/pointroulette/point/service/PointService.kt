@@ -52,7 +52,7 @@ class PointService(
     description: String,
     expiresAt: LocalDateTime? = null,
   ) {
-    val user = userRepository.findById(userId)
+    val user = userRepository.findByIdForUpdate(userId)
       .orElseThrow { BusinessException("USER_001", "사용자를 찾을 수 없습니다") }
 
     // 포인트 차감인 경우 잔액 확인

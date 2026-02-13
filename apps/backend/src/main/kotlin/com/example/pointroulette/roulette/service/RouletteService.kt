@@ -16,6 +16,7 @@ import com.example.pointroulette.roulette.exception.SpinNotFoundException
 import com.example.pointroulette.roulette.repository.RouletteSegmentRepository
 import com.example.pointroulette.roulette.repository.SpinHistoryRepository
 import com.example.pointroulette.user.repository.UserRepository
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
@@ -61,10 +62,10 @@ class RouletteService(
     )
   }
 
-  /** 룰렛 스핀: 1일 1회 체크 → 100~1000p 랜덤 보상 → 예산 소비 → 포인트 지급 */
+  /** 룰렛 스핀: 1일 1회 체크 → 스핀 이력 저장(유니크 보장) → 예산 소비 → 포인트 지급 */
   @Transactional
   fun spin(userId: Long): SpinResultResponse {
-    // 1일 1회 체크
+    // 1일 1회 빠른 체크 (대부분의 중복 요청을 여기서 걸러냄)
     val today = LocalDate.now()
     val alreadySpun = spinHistoryRepository.existsByUserIdAndCancelledFalseAndCreatedAtBetween(
       userId,
@@ -78,26 +79,30 @@ class RouletteService(
     // 100~1000p 랜덤 보상
     val rewardPoint = Random.nextInt(100, 1001)
 
-    // 예산 체크 + 소비
+    // 스핀 이력 먼저 저장 — DB 유니크 인덱스가 동시 중복 참여를 차단
+    try {
+      spinHistoryRepository.saveAndFlush(
+        SpinHistory(
+          userId = userId,
+          segmentId = 0,
+          segmentLabel = "랜덤 보상",
+          rewardPoint = rewardPoint,
+          costPoint = 0,
+        ),
+      )
+    } catch (e: DataIntegrityViolationException) {
+      throw DailyLimitExceededException()
+    }
+
+    // 예산 체크 + 소비 (원자적 UPDATE)
     budgetService.checkAndSpendDailyBudget(rewardPoint)
 
-    // 포인트 지급
+    // 포인트 지급 (비관적 락으로 Lost Update 방지)
     pointService.addPointHistory(
       userId = userId,
       amount = rewardPoint,
       type = PointType.ROULETTE_WIN,
       description = "룰렛 당첨: ${rewardPoint}p",
-    )
-
-    // 스핀 이력 저장
-    spinHistoryRepository.save(
-      SpinHistory(
-        userId = userId,
-        segmentId = 0,
-        segmentLabel = "랜덤 보상",
-        rewardPoint = rewardPoint,
-        costPoint = 0,
-      ),
     )
 
     val user = userRepository.findById(userId)

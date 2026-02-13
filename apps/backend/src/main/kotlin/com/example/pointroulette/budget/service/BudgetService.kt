@@ -57,17 +57,17 @@ class BudgetService(
     return BudgetResponse.from(budget)
   }
 
-  /** 일일 예산 확인 후 소비 (원자적). 예산 미설정 시 제한 없음 */
+  /** 일일 예산 확인 후 소비 (원자적 UPDATE). 예산 미설정 시 제한 없음 */
   @Transactional
   fun checkAndSpendDailyBudget(amount: Int) {
     val today = LocalDate.now()
     val budget = budgetRepository.findByPeriodTypeAndPeriodDate(PeriodType.DAILY, today)
       ?: return // 예산 미설정 시 제한 없음
 
-    if (budget.remainingAmount < amount) {
+    val updated = budgetRepository.spendBudget(PeriodType.DAILY, today, amount.toLong())
+    if (updated == 0) {
       throw BudgetExceededException()
     }
-    budget.addSpent(amount.toLong())
   }
 
   /** 오늘 남은 일일 예산 조회. 미설정 시 -1 반환 */
@@ -81,8 +81,6 @@ class BudgetService(
   /** 예산 소비 복원 (취소 시 사용) */
   @Transactional
   fun restoreDailyBudget(amount: Int, date: LocalDate) {
-    val budget = budgetRepository.findByPeriodTypeAndPeriodDate(PeriodType.DAILY, date)
-      ?: return
-    budget.addSpent(-amount.toLong())
+    budgetRepository.restoreBudget(PeriodType.DAILY, date, amount.toLong())
   }
 }
