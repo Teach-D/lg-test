@@ -61,7 +61,7 @@ class BudgetService(
   @Transactional
   fun checkAndSpendDailyBudget(amount: Int) {
     val today = LocalDate.now()
-    val budget = budgetRepository.findByPeriodTypeAndPeriodDate(PeriodType.DAILY, today)
+    budgetRepository.findByPeriodTypeAndPeriodDate(PeriodType.DAILY, today)
       ?: return // 예산 미설정 시 제한 없음
 
     val updated = budgetRepository.spendBudget(PeriodType.DAILY, today, amount.toLong())

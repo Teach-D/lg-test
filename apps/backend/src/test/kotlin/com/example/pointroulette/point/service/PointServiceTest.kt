@@ -96,7 +96,7 @@ class PointServiceTest : BehaviorSpec({
     )
 
     When("양수 금액을 추가하면") {
-      every { userRepository.findById(userId) } returns Optional.of(user)
+      every { userRepository.findByIdForUpdate(userId) } returns Optional.of(user)
       every { pointHistoryRepository.save(any()) } answers { firstArg() }
 
       Then("포인트가 증가하고 이력이 저장된다") {
@@ -109,7 +109,7 @@ class PointServiceTest : BehaviorSpec({
 
         user.point shouldBe 1500
 
-        verify { userRepository.findById(userId) }
+        verify { userRepository.findByIdForUpdate(userId) }
         verify { pointHistoryRepository.save(any()) }
       }
     }
@@ -127,7 +127,7 @@ class PointServiceTest : BehaviorSpec({
         role = Role.USER
       )
 
-      every { userRepository.findById(userId) } returns Optional.of(user)
+      every { userRepository.findByIdForUpdate(userId) } returns Optional.of(user)
       every { pointHistoryRepository.save(any()) } answers { firstArg() }
 
       Then("포인트가 차감되고 이력이 저장된다") {
@@ -140,7 +140,7 @@ class PointServiceTest : BehaviorSpec({
 
         user.point shouldBe 700
 
-        verify { userRepository.findById(userId) }
+        verify { userRepository.findByIdForUpdate(userId) }
         verify { pointHistoryRepository.save(any()) }
       }
     }
@@ -154,7 +154,7 @@ class PointServiceTest : BehaviorSpec({
         role = Role.USER
       )
 
-      every { userRepository.findById(userId) } returns Optional.of(user)
+      every { userRepository.findByIdForUpdate(userId) } returns Optional.of(user)
 
       Then("InsufficientPointException을 던진다") {
         shouldThrow<InsufficientPointException> {
@@ -182,7 +182,7 @@ class PointServiceTest : BehaviorSpec({
     )
 
     When("관리자가 포인트를 조정하면") {
-      every { userRepository.findById(userId) } returns Optional.of(user)
+      every { userRepository.findByIdForUpdate(userId) } returns Optional.of(user)
       val historySlot = slot<PointHistory>()
       every { pointHistoryRepository.save(capture(historySlot)) } answers { firstArg() }
 
