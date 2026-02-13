@@ -46,6 +46,7 @@ class SecurityConfig(
       allowedOriginPatterns = listOf(
         "http://localhost:*",
         "https://point-roulette-*.vercel.app",
+        "https://lg-test*.vercel.app",
       )
       allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
       allowedHeaders = listOf("*")
