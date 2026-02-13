@@ -73,3 +73,8 @@ allOpen {
 tasks.withType<Test> {
   useJUnitPlatform()
 }
+
+// plain JAR 생성 비활성화 (bootJar만 사용)
+tasks.named<Jar>("jar") {
+  enabled = false
+}
