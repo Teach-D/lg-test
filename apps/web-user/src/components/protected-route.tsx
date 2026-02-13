@@ -4,7 +4,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { authApi } from '@/api/auth';
 
 export default function ProtectedRoute() {
-  const { token, user, setUser, logout } = useAuthStore();
+  const { token, user, setUser } = useAuthStore();
 
   useQuery({
     queryKey: ['me'],
