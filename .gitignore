@@ -11,6 +11,10 @@ out/
 *.class
 target/
 
+# Gradle
+.gradle/
+local.properties
+
 # Environment
 .env
 .env.*
