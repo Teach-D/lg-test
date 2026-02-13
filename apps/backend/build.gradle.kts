@@ -35,7 +35,7 @@ dependencies {
   implementation("org.jetbrains.kotlin:kotlin-reflect")
 
   // API Docs
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
 
   // Database
   runtimeOnly("org.postgresql:postgresql")
