@@ -1,0 +1,49 @@
+name: point_roulette
+description: 포인트 룰렛 앱
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_inappwebview: ^6.1.5
+  flutter_riverpod: ^2.6.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.4
+
+# ---------------------------------------------------------------------------
+# flutter_launcher_icons 설정
+#
+# 실제 아이콘 이미지(assets/icon.png, assets/icon_foreground.png) 준비 후
+# 아래 주석을 해제하고 실행하세요.
+# 실행 커맨드: flutter pub run flutter_launcher_icons
+# ---------------------------------------------------------------------------
+# flutter_launcher_icons:
+#   android: true
+#   ios: true
+#
+#   # 기본 아이콘 (iOS + Android 레거시)
+#   image_path: 'assets/icon.png'
+#
+#   # Android Adaptive Icon (API 26+)
+#   adaptive_icon_background: '#6750A4'   # Material Purple 배경색
+#   adaptive_icon_foreground: 'assets/icon_foreground.png'
+#
+#   # 최소 SDK (android minSdk와 맞출 것)
+#   min_sdk_android: 21
+#
+#   # iOS 앱 스토어 아이콘 (1024x1024 필수)
+#   remove_alpha_ios: true
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/

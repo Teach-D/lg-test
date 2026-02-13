@@ -1,0 +1,36 @@
+# flutter_native_splash 설정
+#
+# 실제 이미지 준비 후 아래 주석 처리된 항목을 활성화하세요.
+# 실행 커맨드: flutter pub run flutter_native_splash:create
+# 제거 커맨드: flutter pub run flutter_native_splash:remove
+
+flutter_native_splash:
+  # 스플래시 배경색 (흰색)
+  color: '#FFFFFF'
+
+  # 다크 모드 배경색
+  color_dark: '#121212'
+
+  # 로고 이미지 (준비 후 주석 해제)
+  # image: assets/splash.png
+  # image_dark: assets/splash_dark.png
+
+  # 로고 크기 비율 (전체 화면 대비 %, 기본값 100)
+  # fullscreen: false
+
+  # Android 설정
+  android: true
+  android_gravity: center
+
+  # iOS 설정
+  ios: true
+  ios_content_mode: center
+
+  # Web 설정 (불필요 시 false)
+  web: false
+
+  # Android 12+ Animated Splash (선택)
+  # android_12:
+  #   image: assets/splash.png
+  #   color: '#FFFFFF'
+  #   icon_background_color: '#6750A4'
