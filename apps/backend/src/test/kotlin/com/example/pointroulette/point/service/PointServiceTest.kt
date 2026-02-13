@@ -54,11 +54,15 @@ class PointServiceTest : BehaviorSpec({
       every {
         pointHistoryRepository.findByUserIdOrderByCreatedAtDesc(userId, any())
       } returns PageImpl(listOf(history1, history2))
+      every {
+        pointHistoryRepository.sumExpiringPoints(userId, any(), any())
+      } returns 500
 
       Then("현재 포인트와 이력 목록을 반환한다") {
         val summary = pointService.getMyPointSummary(userId)
 
         summary.currentPoint shouldBe 1500
+        summary.expiringPointIn7Days shouldBe 500
         summary.histories.size shouldBe 2
         summary.histories[0].amount shouldBe 1000
         summary.histories[0].type shouldBe PointType.SIGNUP_BONUS
@@ -66,6 +70,7 @@ class PointServiceTest : BehaviorSpec({
 
         verify { userRepository.findById(userId) }
         verify { pointHistoryRepository.findByUserIdOrderByCreatedAtDesc(userId, any()) }
+        verify { pointHistoryRepository.sumExpiringPoints(userId, any(), any()) }
       }
     }
 
