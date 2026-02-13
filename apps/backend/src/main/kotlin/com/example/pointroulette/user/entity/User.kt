@@ -24,7 +24,7 @@ class User(
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
-  val role: Role = Role.USER,
+  var role: Role = Role.USER,
 ) : BaseEntity() {
 
   fun updateNickname(newNickname: String) {

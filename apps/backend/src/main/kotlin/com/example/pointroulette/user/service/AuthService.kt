@@ -87,7 +87,7 @@ class AuthService(
   /** 관리자 Mock 로그인: 닉네임만으로 ADMIN 권한 로그인. 없으면 자동 생성 */
   @Transactional
   fun mockAdminLogin(request: MockLoginRequest): LoginResponse {
-    val user = userRepository.findByNickname(request.nickname)
+    var user = userRepository.findByNickname(request.nickname)
       .orElseGet {
         val newUser = User(
           email = "${request.nickname}@admin.mock.local",
@@ -100,6 +100,12 @@ class AuthService(
         logger.info { "Mock admin created: nickname=${saved.nickname}, id=${saved.id}" }
         saved
       }
+
+    if (user.role != Role.ADMIN) {
+      user.role = Role.ADMIN
+      user = userRepository.save(user)
+      logger.info { "User promoted to ADMIN: nickname=${user.nickname}, id=${user.id}" }
+    }
 
     val token = jwtProvider.generateToken(
       userId = user.id,
