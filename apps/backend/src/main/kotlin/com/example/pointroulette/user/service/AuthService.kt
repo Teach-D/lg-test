@@ -6,6 +6,7 @@ import com.example.pointroulette.user.dto.LoginResponse
 import com.example.pointroulette.user.dto.MockLoginRequest
 import com.example.pointroulette.user.dto.RegisterRequest
 import com.example.pointroulette.user.dto.UserResponse
+import com.example.pointroulette.user.entity.Role
 import com.example.pointroulette.user.entity.User
 import com.example.pointroulette.user.exception.DuplicateEmailException
 import com.example.pointroulette.user.exception.InvalidCredentialsException
@@ -68,6 +69,35 @@ class AuthService(
         )
         val saved = userRepository.save(newUser)
         logger.info { "Mock user created: nickname=${saved.nickname}, id=${saved.id}" }
+        saved
+      }
+
+    val token = jwtProvider.generateToken(
+      userId = user.id,
+      email = user.email,
+      role = user.role,
+    )
+
+    return LoginResponse(
+      accessToken = token,
+      user = UserResponse.from(user),
+    )
+  }
+
+  /** 관리자 Mock 로그인: 닉네임만으로 ADMIN 권한 로그인. 없으면 자동 생성 */
+  @Transactional
+  fun mockAdminLogin(request: MockLoginRequest): LoginResponse {
+    val user = userRepository.findByNickname(request.nickname)
+      .orElseGet {
+        val newUser = User(
+          email = "${request.nickname}@admin.mock.local",
+          password = passwordEncoder.encode("mock-password"),
+          nickname = request.nickname,
+          point = 0,
+          role = Role.ADMIN,
+        )
+        val saved = userRepository.save(newUser)
+        logger.info { "Mock admin created: nickname=${saved.nickname}, id=${saved.id}" }
         saved
       }
 

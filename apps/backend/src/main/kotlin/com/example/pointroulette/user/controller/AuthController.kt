@@ -53,4 +53,14 @@ class AuthController(
     val response = authService.mockLogin(request)
     return ApiResponse.ok(response)
   }
+
+  @Operation(summary = "관리자 Mock 로그인", description = "닉네임만으로 관리자 로그인합니다. 계정이 없으면 ADMIN 권한으로 자동 생성됩니다")
+  @ApiResponses(
+    io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그인 성공"),
+  )
+  @PostMapping("/mock-admin-login")
+  fun mockAdminLogin(@Valid @RequestBody request: MockLoginRequest): ApiResponse<LoginResponse> {
+    val response = authService.mockAdminLogin(request)
+    return ApiResponse.ok(response)
+  }
 }

@@ -1,9 +1,8 @@
 import apiClient from './client';
 import type { ApiResponse } from './types';
 
-export interface LoginParams {
-  email: string;
-  password: string;
+export interface MockLoginParams {
+  nickname: string;
 }
 
 export interface LoginResult {
@@ -18,6 +17,6 @@ export interface LoginResult {
 }
 
 export const authApi = {
-  login: (data: LoginParams) =>
-    apiClient.post<ApiResponse<LoginResult>>('/auth/login', data),
+  mockAdminLogin: (data: MockLoginParams) =>
+    apiClient.post<ApiResponse<LoginResult>>('/auth/mock-admin-login', data),
 };
